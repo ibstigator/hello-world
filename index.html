@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time-Based Greeting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #greeting {
+            margin-top: 2rem;
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: 600;
+            min-height: 2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #greeting.show {
+            opacity: 1;
+        }
+
+        .time-display {
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome!</h1>
+        <button onclick="showGreeting()">Greet Me</button>
+        <div id="greeting"></div>
+        <div class="time-display" id="timeDisplay"></div>
+    </div>
+
+    <script>
+        function showGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting = "";
+            let emoji = "";
+
+            // Determine greeting based on time of day
+            if (hour >= 5 && hour < 12) {
+                greeting = "Good Morning";
+                emoji = "🌅";
+            } else if (hour >= 12 && hour < 17) {
+                greeting = "Good Afternoon";
+                emoji = "☀️";
+            } else if (hour >= 17 && hour < 21) {
+                greeting = "Good Evening";
+                emoji = "🌆";
+            } else {
+                greeting = "Good Night";
+                emoji = "🌙";
+            }
+
+            // Display the greeting
+            const greetingElement = document.getElementById('greeting');
+            const timeElement = document.getElementById('timeDisplay');
+
+            greetingElement.textContent = `${emoji} ${greeting}!`;
+            greetingElement.classList.add('show');
+
+            // Show current time
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            timeElement.textContent = `Current time: ${timeString}`;
+        }
+    </script>
+</body>
+</html>
