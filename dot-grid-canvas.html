@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dot Grid Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        canvas {
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: default;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const GRID_SPACING = 40;
+        const SQUARE_SIZE = 80;
+        const CANVAS_SIZE_RATIO = 0.75;
+
+        let canvasWidth, canvasHeight;
+        let square = {
+            x: 0,
+            y: 0,
+            size: SQUARE_SIZE,
+            isDragging: false,
+            isHovering: false,
+            dragOffsetX: 0,
+            dragOffsetY: 0
+        };
+
+        function initCanvas() {
+            canvasWidth = Math.floor(window.innerWidth * CANVAS_SIZE_RATIO);
+            canvasHeight = Math.floor(window.innerHeight * CANVAS_SIZE_RATIO);
+
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            square.x = Math.floor(canvasWidth / 2 - SQUARE_SIZE / 2);
+            square.y = Math.floor(canvasHeight / 2 - SQUARE_SIZE / 2);
+
+            snapToGrid(square);
+
+            draw();
+        }
+
+        function drawDots() {
+            ctx.fillStyle = '#cccccc';
+
+            for (let x = 0; x <= canvasWidth; x += GRID_SPACING) {
+                for (let y = 0; y <= canvasHeight; y += GRID_SPACING) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawSquare() {
+            ctx.save();
+
+            if (square.isDragging) {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+            }
+
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(square.x, square.y, square.size, square.size);
+
+            if (square.isHovering || square.isDragging) {
+                ctx.strokeStyle = square.isDragging ? '#FFD700' : '#2E5C8A';
+                ctx.lineWidth = square.isDragging ? 4 : 3;
+                ctx.strokeRect(square.x, square.y, square.size, square.size);
+            } else {
+                ctx.strokeStyle = '#2E5C8A';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(square.x, square.y, square.size, square.size);
+            }
+
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawDots();
+            drawSquare();
+        }
+
+        function isPointInSquare(x, y) {
+            return x >= square.x &&
+                   x <= square.x + square.size &&
+                   y >= square.y &&
+                   y <= square.y + square.size;
+        }
+
+        function snapToGrid(obj) {
+            obj.x = Math.round(obj.x / GRID_SPACING) * GRID_SPACING;
+            obj.y = Math.round(obj.y / GRID_SPACING) * GRID_SPACING;
+        }
+
+        function constrainToBounds(obj) {
+            obj.x = Math.max(0, Math.min(obj.x, canvasWidth - obj.size));
+            obj.y = Math.max(0, Math.min(obj.y, canvasHeight - obj.size));
+        }
+
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+
+            if (isPointInSquare(pos.x, pos.y)) {
+                square.isDragging = true;
+                square.dragOffsetX = pos.x - square.x;
+                square.dragOffsetY = pos.y - square.y;
+                canvas.classList.add('dragging');
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getMousePos(e);
+
+            if (square.isDragging) {
+                square.x = pos.x - square.dragOffsetX;
+                square.y = pos.y - square.dragOffsetY;
+                constrainToBounds(square);
+                draw();
+            } else {
+                const wasHovering = square.isHovering;
+                square.isHovering = isPointInSquare(pos.x, pos.y);
+
+                if (wasHovering !== square.isHovering) {
+                    canvas.style.cursor = square.isHovering ? 'grab' : 'default';
+                    draw();
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (square.isDragging) {
+                square.isDragging = false;
+                snapToGrid(square);
+                constrainToBounds(square);
+                canvas.classList.remove('dragging');
+                canvas.style.cursor = square.isHovering ? 'grab' : 'default';
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (square.isDragging) {
+                square.isDragging = false;
+                snapToGrid(square);
+                constrainToBounds(square);
+                canvas.classList.remove('dragging');
+                draw();
+            }
+            square.isHovering = false;
+            canvas.style.cursor = 'default';
+            draw();
+        });
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+        });
+
+        initCanvas();
+    </script>
+</body>
+</html>
